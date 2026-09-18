@@ -4,7 +4,7 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
-const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+const TOKEN = import.meta.env.MAPBOX_TOKEN
 
 function featureCollection(sites) { return { type: 'FeatureCollection', features: sites.map((site) => ({ id: site.id, type: 'Feature', geometry: site.geometry, properties: { site_id: site.id, name: site.name } })) } }
 
@@ -22,7 +22,7 @@ export default function ProjectMap({ sites, selectedSiteId, onSelectSite, drawin
   }, [])
   useEffect(() => { const map = mapRef.current; if (!map?.isStyleLoaded() || !map.getSource('sites')) return; map.getSource('sites').setData(featureCollection(sites)); sites.forEach((site) => { map.setFeatureState({ source: 'sites', id: site.id }, { selected: site.id === selectedSiteId }) }); fitMap(map, sites) }, [sites, selectedSiteId])
   useEffect(() => { if (drawing && drawRef.current) drawRef.current.changeMode('draw_polygon'); else if (!drawing && drawRef.current?.getMode() === 'draw_polygon') drawRef.current.changeMode('simple_select') }, [drawing])
-  if (!TOKEN) return <div className="map-missing"><div className="map-missing-grid" /><div><strong>Mapbox token required</strong><p>Add <code>VITE_MAPBOX_TOKEN</code> to your frontend environment to enable the interactive map.</p></div></div>
+  if (!TOKEN) return <div className="map-missing"><div className="map-missing-grid" /><div><strong>Mapbox token required</strong><p>Add <code>MAPBOX_TOKEN</code> to your frontend environment to enable the interactive map.</p></div></div>
   return <div className="map-wrapper"><div ref={containerRef} className="map-container" />{sites.length === 0 && <div className="map-empty">Draw your first polygon to add a site.</div>}</div>
 }
 

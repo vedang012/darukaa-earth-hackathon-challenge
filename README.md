@@ -12,8 +12,8 @@ npm run dev
 
 The frontend defaults to `http://127.0.0.1:8000` for the API. Set these variables in `.env`:
 
-- `VITE_API_BASE_URL`: FastAPI origin, for example `http://127.0.0.1:8000`
-- `VITE_MAPBOX_TOKEN`: public Mapbox access token with Styles and Tiles access
+- `API_BASE_URL`: FastAPI origin, for example `http://127.0.0.1:8000`
+- `MAPBOX_TOKEN`: public Mapbox access token with Styles and Tiles access
 
 The backend CORS configuration must include the Vite origin, normally `http://localhost:5173`.
 
