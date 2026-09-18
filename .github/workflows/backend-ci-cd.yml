@@ -51,14 +51,14 @@ jobs:
 
       - name: Run database migrations
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/darukaa_test
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/darukaa_test
           JWT_SECRET_KEY: ci-test-secret-not-used-in-production
         run: |
           alembic upgrade head
 
       - name: Run tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/darukaa_test
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/darukaa_test
           JWT_SECRET_KEY: ci-test-secret-not-used-in-production
         run: |
           pytest
