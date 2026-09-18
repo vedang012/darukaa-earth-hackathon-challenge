@@ -1,0 +1,14 @@
+alembic==1.16.5
+bcrypt==4.3.0
+fastapi[standard]==0.116.1
+PyJWT==2.10.1
+email-validator==2.3.0
+GeoAlchemy2==0.18.0
+pydantic-settings==2.10.1
+psycopg[binary]==3.2.9
+pytest==8.4.2
+python-dotenv==1.1.1
+Shapely==2.1.1
+SQLAlchemy==2.0.43
+httpx==0.28.1
+uvicorn[standard]==0.35.0
