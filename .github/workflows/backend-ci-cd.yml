@@ -1,0 +1,73 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Build Docker image
+        run: docker build -t darukaa-backend .
+
+  deploy:
+    name: Deploy to EC2
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/darukaa-earth-hackathon-challenge
+
+            git pull origin main
+
+            cd backend
+
+            sudo docker build -t darukaa-backend .
+
+            sudo docker rm -f darukaa-backend || true
+
+            sudo docker run -d \
+              --name darukaa-backend \
+              --env-file .env \
+              -p 8000:8000 \
+              darukaa-backend
+
+            sleep 5
+
+            curl -f http://127.0.0.1:8000/docs
