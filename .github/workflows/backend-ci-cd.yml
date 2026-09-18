@@ -13,12 +13,30 @@ jobs:
     name: Backend Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: darukaa_test
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U postgres -d darukaa_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: backend
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -31,16 +49,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/darukaa_test
+          JWT_SECRET_KEY: ci-test-secret-not-used-in-production
+        run: |
+          alembic upgrade head
+
       - name: Run tests
-        run: pytest
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/darukaa_test
+          JWT_SECRET_KEY: ci-test-secret-not-used-in-production
+        run: |
+          pytest
 
       - name: Build Docker image
-        run: docker build -t darukaa-backend .
+        run: |
+          docker build -t darukaa-backend .
 
   deploy:
     name: Deploy to EC2
     needs: test
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -50,23 +82,36 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+
           script: |
+            set -e
+
+            echo "Starting deployment..."
+
             cd ~/darukaa-earth-hackathon-challenge
 
+            echo "Pulling latest code..."
             git pull origin main
 
             cd backend
 
+            echo "Building Docker image..."
             sudo docker build -t darukaa-backend .
 
+            echo "Stopping existing container..."
             sudo docker rm -f darukaa-backend || true
 
+            echo "Starting new container..."
             sudo docker run -d \
               --name darukaa-backend \
               --env-file .env \
               -p 8000:8000 \
               darukaa-backend
 
+            echo "Waiting for application to start..."
             sleep 5
 
-            curl -f http://127.0.0.1:8000/docs
+            echo "Running health check..."
+            curl --fail http://127.0.0.1:8000/docs
+
+            echo "Deployment successful!"
