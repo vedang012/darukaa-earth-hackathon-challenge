@@ -1,4 +1,5 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { useAuth } from './context/AuthContext'
 import AuthPage from './pages/AuthPage'
 import Projects from './pages/Projects'
@@ -16,15 +17,18 @@ function ProtectedRoute() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/projects" replace />} />
-      <Route path="/login" element={<AuthPage mode="login" />} />
-      <Route path="/register" element={<AuthPage mode="register" />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/:projectId" element={<ProjectDashboard />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/projects" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/login" element={<AuthPage mode="login" />} />
+        <Route path="/register" element={<AuthPage mode="register" />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:projectId" element={<ProjectDashboard />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/projects" replace />} />
+      </Routes>
+      <Analytics />
+    </>
   )
 }
